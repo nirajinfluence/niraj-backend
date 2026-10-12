@@ -12,7 +12,7 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB Connected Successfully!'))
   .catch(err => console.error('MongoDB Connection Error:', err));
 
-// High-CTR Schema: Headline, Photo, Button + Tracking
+// Schema & Explicit Model pointing to 'link' collection
 const LinkSchema = new mongoose.Schema({
   channelKey: { type: String, required: true, unique: true },
   headline: { type: String, default: 'Official Telegram Channel' },
@@ -22,7 +22,7 @@ const LinkSchema = new mongoose.Schema({
   telegramUrl: { type: String, required: true }
 });
 
-const Link = mongoose.model('Link', LinkSchema);
+const Link = mongoose.model('Link', LinkSchema, 'link');
 
 // Endpoint to fetch config instantly
 app.get('/api/config/:key', async (req, res) => {
