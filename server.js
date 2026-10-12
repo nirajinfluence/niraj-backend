@@ -12,26 +12,37 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB Connected Successfully!'))
   .catch(err => console.error('MongoDB Connection Error:', err));
 
-// Schema & Explicit Model pointing to 'link' collection
-const LinkSchema = new mongoose.Schema({
-  channelKey: { type: String, required: true, unique: true },
-  headline: { type: String, default: 'Official Telegram Channel' },
-  photoUrl: { type: String, default: '' },
-  buttonText: { type: String, default: 'JOIN TELEGRAM NOW 🚀' },
-  pixelId: { type: String, required: true },
-  telegramUrl: { type: String, required: true }
-});
+// Dynamic Schema - Flexible Read
+const LinkSchema = new mongoose.Schema({}, { strict: false, collection: 'link' });
+const Link = mongoose.model('Link', LinkSchema);
 
-const Link = mongoose.model('Link', LinkSchema, 'link');
-
-// Endpoint to fetch config instantly
+// Flexible Query Endpoint
 app.get('/api/config/:key', async (req, res) => {
   try {
-    const config = await Link.findOne({ channelKey: req.params.key }).select('headline photoUrl buttonText pixelId telegramUrl channelKey -_id');
+    const key = req.params.key;
+    // Lowercase / Uppercase dono match karega
+    const config = await Link.findOne({
+      $or: [
+        { channelKey: key },
+        { channelKey: key.toLowerCase() }
+      ]
+    });
+
     if (!config) {
       return res.status(404).json({ success: false, message: 'Config not found' });
     }
-    res.json({ success: true, data: config });
+
+    res.json({
+      success: true,
+      data: {
+        channelKey: config.channelKey,
+        headline: config.headline,
+        photoUrl: config.photoUrl,
+        buttonText: config.buttonText,
+        pixelId: config.pixelId,
+        telegramUrl: config.telegramUrl
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
