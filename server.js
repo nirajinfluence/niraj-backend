@@ -12,20 +12,22 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB Connected Successfully!'))
   .catch(err => console.error('MongoDB Connection Error:', err));
 
-// Dynamic Link Schema
+// High-CTR Schema: Headline, Photo, Button + Tracking
 const LinkSchema = new mongoose.Schema({
   channelKey: { type: String, required: true, unique: true },
+  headline: { type: String, default: 'Official Telegram Channel' },
+  photoUrl: { type: String, default: '' },
+  buttonText: { type: String, default: 'JOIN TELEGRAM NOW 🚀' },
   pixelId: { type: String, required: true },
-  telegramUrl: { type: String, required: true },
-  redirectDelay: { type: Number, default: 3 }
+  telegramUrl: { type: String, required: true }
 });
 
 const Link = mongoose.model('Link', LinkSchema);
 
-// Endpoint to fetch dynamic config based on key
+// Endpoint to fetch config instantly
 app.get('/api/config/:key', async (req, res) => {
   try {
-    const config = await Link.findOne({ channelKey: req.params.key });
+    const config = await Link.findOne({ channelKey: req.params.key }).select('headline photoUrl buttonText pixelId telegramUrl channelKey -_id');
     if (!config) {
       return res.status(404).json({ success: false, message: 'Config not found' });
     }
@@ -35,7 +37,7 @@ app.get('/api/config/:key', async (req, res) => {
   }
 });
 
-// Health check endpoint
+// Health Check
 app.get('/', (req, res) => {
   res.send('Tracking API is running live!');
 });
