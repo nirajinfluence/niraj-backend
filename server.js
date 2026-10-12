@@ -12,15 +12,14 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB Connected Successfully!'))
   .catch(err => console.error('MongoDB Connection Error:', err));
 
-// Dynamic Schema - Flexible Read
+// Flexible Schema for collection 'link'
 const LinkSchema = new mongoose.Schema({}, { strict: false, collection: 'link' });
 const Link = mongoose.model('Link', LinkSchema);
 
-// Flexible Query Endpoint
+// Fetch Config Endpoint
 app.get('/api/config/:key', async (req, res) => {
   try {
     const key = req.params.key;
-    // Lowercase / Uppercase dono match karega
     const config = await Link.findOne({
       $or: [
         { channelKey: key },
